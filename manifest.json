@@ -1,0 +1,33 @@
+{
+	"name": "WebVR Recorder",
+	"short_name": "WebVR Rec",
+	"version": "1.0.0",
+	"minimum_chrome_version": "10.0",
+	"devtools_page": "devtools.html",
+	"description": "WebVR movements Recorder",
+	"background": {
+		"scripts": [ "common.js", "background.js" ]
+	},
+	"permissions": [
+		"tabs",
+		"<all_urls>",
+		"storage"
+	],
+	"content_scripts": [{
+		"matches": ["<all_urls>"],
+		"js": [ "content-script.js" ],
+		"run_at": "document_start",
+		"all_frames": true
+	} ],
+	"browser_action": {
+		"default_icon": {
+		},
+
+		"default_title": "WebVR",
+		"default_popup": "popup.html"
+	},
+	"manifest_version": 2,
+	"web_accessible_resources": [
+		"content-script.js"
+	]
+}
