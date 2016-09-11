@@ -43,6 +43,12 @@ chrome.runtime.onConnect.addListener( function( port ) {
 		if( !connections[ tabId ] ) connections[ tabId ] = {};
 		connections[ tabId ][ name ] = port;
 
+		switch( msg.method ) {
+			case 'new-pose':
+			log( msg.data );
+			break;
+		}
+
 	}
 
 	port.onMessage.addListener( name === 'popup' ? listenerPopup: listener );

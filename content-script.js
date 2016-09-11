@@ -39,15 +39,9 @@ port.onMessage.addListener( function( msg ) {
 
 } );
 
-window.addEventListener( 'webvr-ready', function() {
+window.addEventListener( 'webvr-rec-new-pose', function( e ) {
 
-	post( { method: 'page-ready' } );
-
-} );
-
-window.addEventListener( 'webvr-resetpose', function() {
-
-	post( { method: 'reset-pose' } );
+	post( { method: 'new-pose', data: e.detail } );
 
 } );
 
@@ -78,7 +72,20 @@ var source = '(' + function () {
 	VRDisplay.prototype.getPose = function() {
 
 		var res = getPose.apply( this, arguments );
-		if( recording ) console.log( res.position );
+		if( recording ) {
+			var e = new CustomEvent( 'webvr-rec-new-pose', {
+				detail: {
+					timestamp: res.timestamp,
+					position: res.position,
+					linearVelocity: res.linearVelocity,
+					linearAcceleration: res.linearAcceleration,
+					orientation: res.orientation,
+					angularVelocity: res.angularVelocity,
+					angularAcceleration: res.angularAcceleration
+				}
+			} );
+			window.dispatchEvent( e );
+		}
 		return res;
 	}
 
