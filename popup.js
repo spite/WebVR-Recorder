@@ -20,21 +20,23 @@ function post( msg ) {
 
 }
 
-post( { method: 'ready' } );
+window.addEventListener( 'load', function() {
+	post( { method: 'ready' } );
+} );
 
 port.onMessage.addListener( function( msg ) {
 
-	/*switch( msg.action ) {
-		case 'pose':
-		var e = new CustomEvent( 'webvr-pose', {
-			detail: {
-				position: msg.position,
-				rotation: msg.rotation
-			}
-		} );
-		window.dispatchEvent( e );
+	log( msg );
+
+	switch( msg.method ) {
+		case 'recordings':
+		msg.recordings.forEach( recording => {
+			var o = document.createElement( 'option' );
+			o.textContent = recording.id;
+			ge( 'recordings-select' ).appendChild( o );
+		})
 		break;
-	}*/
+	}
 
 } );
 

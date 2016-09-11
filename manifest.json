@@ -6,7 +6,7 @@
 	"devtools_page": "devtools.html",
 	"description": "WebVR movements Recorder",
 	"background": {
-		"scripts": [ "common.js", "background.js" ]
+		"scripts": [ "libs/dexie.min.js", "common.js", "background.js" ]
 	},
 	"permissions": [
 		"tabs",

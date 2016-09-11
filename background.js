@@ -1,6 +1,19 @@
 var extensionId = chrome.runtime.id;
 log( 'Background', extensionId );
 
+var settings = {};
+
+var defaultSettings = {
+
+	recordings: []
+
+};
+
+loadSettings().then( res => {
+	settings = res;
+	log( 'Script and settings loaded', settings );
+} );
+
 function notifyAllContentScripts( method ) {
 
 	Object.keys( connections ).forEach( tabId => {
@@ -12,12 +25,45 @@ function notifyAllContentScripts( method ) {
 }
 
 var connections = {};
+var recording = {};
+var recordingIDs = [];
+var recordings = [];
+
+var db = new Dexie( 'webvr-recordings' );
+db.version(1).stores({
+	recordings: 'id,frames'
+});
+db.open().catch(function (e) {
+	log ( `Open failed: ${e}` );
+});
+loadRecordings().then( _ => {
+	recordingIDs = recordings.map( r => r.id );
+	log( 'Notifying recordings', recordingIDs );
+})
+
+function loadRecordings() {
+
+	return db.recordings.toArray().then( e => recordings = e );
+
+}
+
+function saveRecording( recording ) {
+
+	db.recordings.put( { id: recording.id, frames: recording.frames } ).then( function(){
+		log( 'Recording successfully saved' );
+	})
+
+}
 
 chrome.runtime.onConnect.addListener( function( port ) {
 
 	log( 'New connection (chrome.runtime.onConnect) from', port.name );
 
 	var name = port.name;
+
+	if( name === 'popup' ) {
+		port.postMessage( { method: 'recordings', recordings: recordings } );
+	}
 
 	( function() {
 
@@ -30,25 +76,27 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 			function listenerPopup( msg, sender ) {
 
-				log( 'From popup', msg );
+				log( 'Popup', msg );
 
 				switch( msg.method ) {
 					case 'start-recording':
-						recordings = [];
+						recording = { id: performance.now(), frames: [] };
 						connections[ tabId ].contentScript.postMessage( { method: 'start-recording' } );
 					break;
 					case 'stop-recording':
 						connections[ tabId ].contentScript.postMessage( { method: 'stop-recording' } );
-						log( recordings );
+						saveRecording( recording );
 					break;
 				}
 			}
 
 			function listenerContentScript( msg, sender ) {
 
+				log( 'Content Script', msg );
+
 				switch( msg.method ) {
 					case 'new-pose':
-					recordings.push( msg.data );
+					recording.frames.push( msg.data );
 					break;
 				}
 

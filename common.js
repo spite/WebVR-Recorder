@@ -44,6 +44,8 @@ function loadSettings() {
 
 function saveSettings( settings ) {
 
+	log( 'Saving', settings );
+
 	return new Promise( ( resolve, reject ) => {
 
 		chrome.storage.sync.set( { 'settings': settings }, obj => {
