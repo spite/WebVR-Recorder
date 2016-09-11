@@ -105,20 +105,31 @@ var source = '(' + function () {
 	VRDisplay.prototype.getPose = function() {
 
 		var res = getPose.apply( this, arguments );
+
 		if( playing ) {
+			
 			var ptr = playingOffset + ( performance.now() - startTime ) % playingLength;
-			var frame = playingSequence.frames.find( f => {
-				return ptr >= f.timestamp;
-			} );
+			
+			var frames = playingSequence.frames.filter( f => ptr <= f.timestamp );
+			var frame = frames[ 0 ];
+
 			if( frame ) {
+
 				res.position[ 0 ] = frame.position[ 0 ];
 				res.position[ 1 ] = frame.position[ 1 ];
 				res.position[ 2 ] = frame.position[ 2 ];
-				console.log( res );
+
+				res.orientation[ 0 ] = frame.orientation[ 0 ];
+				res.orientation[ 1 ] = frame.orientation[ 1 ];
+				res.orientation[ 2 ] = frame.orientation[ 2 ];
+				res.orientation[ 3 ] = frame.orientation[ 3 ];
+
+				console.log( ptr, frame.position[ 0 ] );
 			} else {
 				console.log( 'not modified' );
 			}
 		}
+
 		if( recording ) {
 			var e = new CustomEvent( 'webvr-rec-new-pose', {
 				detail: {

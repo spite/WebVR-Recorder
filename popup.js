@@ -38,9 +38,12 @@ port.onMessage.addListener( function( msg ) {
 
 	switch( msg.method ) {
 		case 'recordings':
+		while( msg.recordings.firstChild ) msg.recordings.removeChild( msg.recordings.firstChild )
 		msg.recordings.forEach( ( recording, n ) => {
 			var o = document.createElement( 'option' );
-			o.textContent = recording.id;
+			var d = new Date();
+			d.setMilliseconds( recording.id );
+			o.textContent = d.toString();
 			o.setAttribute( 'value', n );
 			ge( 'recordings-select' ).appendChild( o );
 		})

@@ -50,9 +50,7 @@ function loadRecordings() {
 
 function saveRecording( recording ) {
 
-	db.recordings.put( { id: recording.id, frames: recording.frames } ).then( function(){
-		log( 'Recording successfully saved' );
-	})
+	return db.recordings.put( { id: recording.id, frames: recording.frames } );
 
 }
 
@@ -82,12 +80,19 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 				switch( msg.method ) {
 					case 'start-recording':
-						recording = { id: performance.now(), frames: [] };
+						recording = { id: Date.now(), frames: [] };
 						connections[ tabId ].contentScript.postMessage( { method: 'start-recording' } );
 					break;
 					case 'stop-recording':
 						connections[ tabId ].contentScript.postMessage( { method: 'stop-recording' } );
-						saveRecording( recording );
+						saveRecording( recording ).then( _ => {
+							log( 'Recording successfully saved' );
+							loadRecordings().then( _ => {
+								Object.keys( connections ).forEach( tabId => {
+									if( connections[ tabId ].popup ) connections[ tabId ].popup.postMessage( { method: 'recordings', recordings: recordings } );
+								} );
+							} );
+						});
 					break;
 					case 'select-recording':
 						connections[ tabId ].contentScript.postMessage( { method: 'set-recording', recording: recordings[ msg.value ] } );
