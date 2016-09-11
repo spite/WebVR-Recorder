@@ -38,15 +38,18 @@ port.onMessage.addListener( function( msg ) {
 
 	switch( msg.method ) {
 		case 'recordings':
-		while( msg.recordings.firstChild ) msg.recordings.removeChild( msg.recordings.firstChild )
-		msg.recordings.forEach( ( recording, n ) => {
-			var o = document.createElement( 'option' );
-			var d = new Date();
-			d.setMilliseconds( recording.id );
-			o.textContent = d.toString();
-			o.setAttribute( 'value', n );
-			ge( 'recordings-select' ).appendChild( o );
-		})
+		while( ge( 'recordings-select' ).firstChild ) ge( 'recordings-select' ).removeChild( ge( 'recordings-select' ).firstChild );
+		if( msg.recordings.length ) {
+			msg.recordings.forEach( ( recording, n ) => {
+				var o = document.createElement( 'option' );
+				var d = new Date( recording.id );
+				o.textContent = d.toString();
+				o.setAttribute( 'value', n );
+				ge( 'recordings-select' ).appendChild( o );
+			})
+			post( { method: 'select-recording', value: 0 } )
+			ge( 'selected-playback' ).textContent = ge( 'recordings-select' ).options[ 0 ].textContent;
+		}
 		break;
 	}
 

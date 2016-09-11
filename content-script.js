@@ -107,9 +107,9 @@ var source = '(' + function () {
 		var res = getPose.apply( this, arguments );
 
 		if( playing ) {
-			
+
 			var ptr = playingOffset + ( performance.now() - startTime ) % playingLength;
-			
+
 			var frames = playingSequence.frames.filter( f => ptr <= f.timestamp );
 			var frame = frames[ 0 ];
 

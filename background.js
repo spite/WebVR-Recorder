@@ -62,7 +62,6 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 	if( name === 'popup' ) {
 		port.postMessage( { method: 'recordings', recordings: recordings } );
-		port.postMessage( { method: 'set-recording', recording: recordings[ 0 ] } );
 	}
 
 	( function() {
