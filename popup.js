@@ -21,8 +21,16 @@ function post( msg ) {
 }
 
 window.addEventListener( 'load', function() {
+
+	ge( 'recordings-select' ).addEventListener( 'change', e => {
+		post( { method: 'select-recording', value: e.target.value } )
+	} );
+
 	post( { method: 'ready' } );
+
 } );
+
+var recording = null;
 
 port.onMessage.addListener( function( msg ) {
 
@@ -30,9 +38,10 @@ port.onMessage.addListener( function( msg ) {
 
 	switch( msg.method ) {
 		case 'recordings':
-		msg.recordings.forEach( recording => {
+		msg.recordings.forEach( ( recording, n ) => {
 			var o = document.createElement( 'option' );
 			o.textContent = recording.id;
+			o.setAttribute( 'value', n );
 			ge( 'recordings-select' ).appendChild( o );
 		})
 		break;
@@ -49,5 +58,17 @@ ge( 'start-recording-button' ).addEventListener( 'click', e => {
 ge( 'stop-recording-button' ).addEventListener( 'click', e => {
 
 	post( { method: 'stop-recording' } );
+
+} );
+
+ge( 'start-playback-button' ).addEventListener( 'click', e => {
+
+	post( { method: 'start-playing' } );
+
+} );
+
+ge( 'stop-playback-button' ).addEventListener( 'click', e => {
+
+	post( { method: 'stop-playing' } );
 
 } );

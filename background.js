@@ -28,6 +28,7 @@ var connections = {};
 var recording = {};
 var recordingIDs = [];
 var recordings = [];
+var playingRecording = null;
 
 var db = new Dexie( 'webvr-recordings' );
 db.version(1).stores({
@@ -38,7 +39,7 @@ db.open().catch(function (e) {
 });
 loadRecordings().then( _ => {
 	recordingIDs = recordings.map( r => r.id );
-	log( 'Notifying recordings', recordingIDs );
+	log( 'Notifying recordings', recordingIDs, recordings );
 })
 
 function loadRecordings() {
@@ -63,6 +64,7 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 	if( name === 'popup' ) {
 		port.postMessage( { method: 'recordings', recordings: recordings } );
+		port.postMessage( { method: 'set-recording', recording: recordings[ 0 ] } );
 	}
 
 	( function() {
@@ -86,6 +88,15 @@ chrome.runtime.onConnect.addListener( function( port ) {
 					case 'stop-recording':
 						connections[ tabId ].contentScript.postMessage( { method: 'stop-recording' } );
 						saveRecording( recording );
+					break;
+					case 'select-recording':
+						connections[ tabId ].contentScript.postMessage( { method: 'set-recording', recording: recordings[ msg.value ] } );
+					break;
+					case 'start-playing':
+						connections[ tabId ].contentScript.postMessage( { method: 'start-playing' } );
+					break;
+					case 'stop-playing':
+						connections[ tabId ].contentScript.postMessage( { method: 'stop-playing' } );
 					break;
 				}
 			}
