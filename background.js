@@ -54,6 +54,12 @@ function saveRecording( recording ) {
 
 }
 
+function deleteRecording( id ) {
+
+	return db.recordings.where( 'id' ).equals( id ).delete();
+
+}
+
 chrome.runtime.onConnect.addListener( function( port ) {
 
 	log( 'New connection (chrome.runtime.onConnect) from', port.name );
@@ -101,6 +107,16 @@ chrome.runtime.onConnect.addListener( function( port ) {
 					break;
 					case 'stop-playing':
 						connections[ tabId ].contentScript.postMessage( { method: 'stop-playing' } );
+					break;
+					case 'delete-recording':
+						deleteRecording( msg.value ).then( _ => {
+							log( 'Recording successfully removed' );
+							loadRecordings().then( _ => {
+								Object.keys( connections ).forEach( tabId => {
+									if( connections[ tabId ].popup ) connections[ tabId ].popup.postMessage( { method: 'recordings', recordings: recordings } );
+								} );
+							} );
+						} );
 					break;
 				}
 			}

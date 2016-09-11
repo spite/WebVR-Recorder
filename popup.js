@@ -23,7 +23,8 @@ function post( msg ) {
 window.addEventListener( 'load', function() {
 
 	ge( 'recordings-select' ).addEventListener( 'change', e => {
-		post( { method: 'select-recording', value: e.target.value } )
+		selected = e.target.value;
+		post( { method: 'select-recording', value: selected } )
 	} );
 
 	post( { method: 'ready' } );
@@ -31,6 +32,8 @@ window.addEventListener( 'load', function() {
 } );
 
 var recording = null;
+var selected = 0;
+var recordings = [];
 
 port.onMessage.addListener( function( msg ) {
 
@@ -38,6 +41,7 @@ port.onMessage.addListener( function( msg ) {
 
 	switch( msg.method ) {
 		case 'recordings':
+		recordings = msg.recordings;
 		while( ge( 'recordings-select' ).firstChild ) ge( 'recordings-select' ).removeChild( ge( 'recordings-select' ).firstChild );
 		if( msg.recordings.length ) {
 			msg.recordings.forEach( ( recording, n ) => {
@@ -76,5 +80,11 @@ ge( 'start-playback-button' ).addEventListener( 'click', e => {
 ge( 'stop-playback-button' ).addEventListener( 'click', e => {
 
 	post( { method: 'stop-playing' } );
+
+} );
+
+ge( 'delete-playback-button' ).addEventListener( 'click', e => {
+
+	post( { method: 'delete-recording', value: recordings[ selected ].id } );
 
 } );
