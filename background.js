@@ -15,65 +15,76 @@ var connections = {};
 
 chrome.runtime.onConnect.addListener( function( port ) {
 
-	log( 'New connection (chrome.runtime.onConnect) from', port.name, port.sender.frameId, port );
+	log( 'New connection (chrome.runtime.onConnect) from', port.name );
 
 	var name = port.name;
 
-	function listenerPopup( msg, sender ) {
+	( function() {
 
-		log( 'From popup', msg );
+		chrome.tabs.query( { active: true }, e => {
 
-		switch( msg.method ) {
-			case 'start-recording':
-			notifyAllContentScripts( 'start-recording' );
-			break;
-			case 'stop-recording':
-			notifyAllContentScripts( 'stop-recording' );
-			break;
-		}
-	}
+			var tabId = e[ 0 ].id;
 
-	function listener( msg, sender ) {
+			if( !connections[ tabId ] ) connections[ tabId ] = {};
+			connections[ tabId ][ name ] = port;
 
-		var tabId;
+			function listenerPopup( msg, sender ) {
 
-		if( msg.tabId ) tabId = msg.tabId
-		else tabId = sender.sender.tab.id;
+				log( 'From popup', msg );
 
-		if( !connections[ tabId ] ) connections[ tabId ] = {};
-		connections[ tabId ][ name ] = port;
-
-		switch( msg.method ) {
-			case 'new-pose':
-			log( msg.data );
-			break;
-		}
-
-	}
-
-	port.onMessage.addListener( name === 'popup' ? listenerPopup: listener );
-
-	port.onDisconnect.addListener( function() {
-
-		port.onMessage.removeListener( listener );
-
-		log( name, 'disconnect (chrome.runtime.onDisconnect)' );
-
-		Object.keys( connections ).forEach( c => {
-			if( connections[ c ][ name ] === port ) {
-				connections[ c ][ name ] = null;
-				delete connections[ c ][ name ];
+				switch( msg.method ) {
+					case 'start-recording':
+						recordings = [];
+						connections[ tabId ].contentScript.postMessage( { method: 'start-recording' } );
+					break;
+					case 'stop-recording':
+						connections[ tabId ].contentScript.postMessage( { method: 'stop-recording' } );
+						log( recordings );
+					break;
+				}
 			}
-			if ( Object.keys( connections[ c ] ).length === 0 ) {
-				connections[ c ] = null;
-				delete connections[ c ];
+
+			function listenerContentScript( msg, sender ) {
+
+				switch( msg.method ) {
+					case 'new-pose':
+					recordings.push( msg.data );
+					break;
+				}
+
 			}
-		} )
+
+			var listener = name === 'popup' ? listenerPopup: listenerContentScript;
+
+			port.onMessage.addListener( listener );
+
+			port.onDisconnect.addListener( function() {
+
+				port.onMessage.removeListener( listener );
+
+				log( name, 'disconnect (chrome.runtime.onDisconnect)' );
+
+				Object.keys( connections ).forEach( c => {
+
+					if( connections[ c ][ name ] === port ) {
+						connections[ c ][ name ] = null;
+						delete connections[ c ][ name ];
+					}
+
+					if ( Object.keys( connections[ c ] ).length === 0 ) {
+						connections[ c ] = null;
+						delete connections[ c ];
+					}
+				} )
 
 
-	} );
+			} );
 
-	port.postMessage( { method: 'ack' } );
+			port.postMessage( { method: 'ack' } );
+
+		} );
+
+	})();
 
 	return true;
 
