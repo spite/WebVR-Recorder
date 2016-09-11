@@ -56,6 +56,7 @@ var source = '(' + function () {
 	'use strict';
 
 	var recording = false;
+	var playing = false;
 
 	window.addEventListener( 'webvr-rec-start-recording', e => {
 		recording = true;
@@ -63,6 +64,14 @@ var source = '(' + function () {
 
 	window.addEventListener( 'webvr-rec-stop-recording', e => {
 		recording = false;
+	} );
+
+	window.addEventListener( 'webvr-rec-start-playing', e => {
+		playing = true;
+	} );
+
+	window.addEventListener( 'webvr-rec-stop-playing', e => {
+		playing = false;
 	} );
 
 	var getPose = VRDisplay.prototype.getPose;
