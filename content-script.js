@@ -73,11 +73,52 @@ var source = '(' + function () {
 
 	var recording = false;
 	var playing = false;
-	var playingPtr = 0;
+
 	var playingSequence = null;
-	var playingOffset = 0;
-	var playingLength = 0;
-	var startTime = 0;
+
+	function Track() {
+
+		this.playingPtr = 0;
+		this.playingOffset = 0;
+		this.playingLength = 0;
+		this.startTime = 0;
+
+		this.track = null;
+
+	}
+
+	Track.prototype.set = function( t ) {
+
+		this.playingPtr = 0;
+		this.playingOffset = 0;
+		this.playingLength = 0;
+
+		if( t.frames.length > 0 ) {
+			this.playingOffset = t.frames[ 0 ].timestamp;
+			this.playingLength = t.frames[ t.frames.length - 1 ].timestamp - this.playingOffset;
+		}
+
+		this.track = t;
+
+	}
+
+	Track.prototype.start = function() {
+		
+		this.playingPtr = 0;
+		this.startTime = performance.now();
+
+	}
+
+	Track.prototype.getFrame = function() {
+
+		var ptr = this.playingOffset + ( performance.now() - this.startTime ) % this.playingLength;
+		var frame = this.track.frames.find( f => ptr <= f.timestamp );
+		return frame;
+
+	}
+
+	var hmdTrack = new Track();
+	var controllerTracks = [];
 
 	window.addEventListener( 'webvr-rec-start-recording', e => {
 		recording = true;
@@ -88,24 +129,60 @@ var source = '(' + function () {
 	} );
 
 	window.addEventListener( 'webvr-rec-select-playback', e => {
+		
 		playingSequence = e.detail;
-		playingOffset = 0;
-		playingLength = 0;
-		if( playingSequence.poses.hmd.frames.length > 0 ) {
-			playingOffset = playingSequence.poses.hmd.frames[ 0 ].timestamp;
-			playingLength = playingSequence.poses.hmd.frames[ playingSequence.poses.hmd.frames.length - 1 ].timestamp - playingOffset;
-		}
+		controllerTracks = [];
+		hmdTrack.set( playingSequence.poses.hmd );
+		playingSequence.poses.controllers.forEach( p => {
+			var t = new Track();
+			t.set( p );
+			controllerTracks.push( t );
+		} );
+
 	} );
 
 	window.addEventListener( 'webvr-rec-start-playback', e => {
 		playing = true;
-		playingPtr = 0;
-		startTime = performance.now();
+		hmdTrack.start();
 	} );
 
 	window.addEventListener( 'webvr-rec-stop-playback', e => {
 		playing = false;
 	} );
+
+	function copyFrameToPose( frame, pose ) {
+
+		pose.position[ 0 ] = frame.position[ 0 ];
+		pose.position[ 1 ] = frame.position[ 1 ];
+		pose.position[ 2 ] = frame.position[ 2 ];
+
+		pose.orientation[ 0 ] = frame.orientation[ 0 ];
+		pose.orientation[ 1 ] = frame.orientation[ 1 ];
+		pose.orientation[ 2 ] = frame.orientation[ 2 ];
+		pose.orientation[ 3 ] = frame.orientation[ 3 ];
+
+	}
+
+	function copyFrameToGamepadPose( frame, pose ) {
+
+		var newPose = {
+			position: new Float32Array( 3 ),
+			orientation: new Float32Array( 4 )
+		};
+
+		newPose.position[ 0 ] = frame.position[ 0 ];
+		newPose.position[ 1 ] = frame.position[ 1 ];
+		newPose.position[ 2 ] = frame.position[ 2 ];
+
+		newPose.orientation[ 0 ] = frame.orientation[ 0 ];
+		newPose.orientation[ 1 ] = frame.orientation[ 1 ];
+		newPose.orientation[ 2 ] = frame.orientation[ 2 ];
+		newPose.orientation[ 3 ] = frame.orientation[ 3 ];
+
+		return newPose;
+
+	}
+
 
 	var getPose = VRDisplay.prototype.getPose;
 	VRDisplay.prototype.getPose = function() {
@@ -114,20 +191,11 @@ var source = '(' + function () {
 
 		if( playing ) {
 
-			var ptr = playingOffset + ( performance.now() - startTime ) % playingLength;
-
-			var frame = playingSequence.poses.hmd.frames.find( f => ptr <= f.timestamp );
+			var frame = hmdTrack.getFrame();
 
 			if( frame ) {
 
-				res.position[ 0 ] = frame.position[ 0 ];
-				res.position[ 1 ] = frame.position[ 1 ];
-				res.position[ 2 ] = frame.position[ 2 ];
-
-				res.orientation[ 0 ] = frame.orientation[ 0 ];
-				res.orientation[ 1 ] = frame.orientation[ 1 ];
-				res.orientation[ 2 ] = frame.orientation[ 2 ];
-				res.orientation[ 3 ] = frame.orientation[ 3 ];
+				copyFrameToPose( frame, res );
 
 				//console.log( ptr, frame.position[ 0 ] );
 			} else {
@@ -152,33 +220,43 @@ var source = '(' + function () {
 		return res;
 	}
 
-	var getGamepads = navigator.getGamepads
+	var getGamepads = navigator.getGamepads;
 	navigator.getGamepads = function() {
 
-		var res = getGamepads();
+		var res = getGamepads.apply( navigator );
 
 		if( playing ) {
 
-			res.forEach( ( c, n ) => {
-				if( res && res.pose ) {
+			var id = 0;
+			[].forEach.call( res, ( c, n ) => {
+				if( c && c.pose ) {
+					if( controllerTracks[ id ] ) {
+						var frame = controllerTracks[ id ].getFrame();
+						if( frame ) {
+							c.pose = copyFrameToGamepadPose( frame, c.pose );
+						}
+					}
+					id++;
 				}
+			} );
+
+			if( id < controllerTracks.length ) {
+
 			}
 
 		}
 
 		if( recording ) {
-			res.forEach( ( c, n ) => {
-				if( res && res.pose ) {
+			[].forEach.call( res, ( c, n ) => {
+				if( c && c.pose ) {
 					var e = new CustomEvent( 'webvr-rec-new-controller-pose', {
 						detail: {
 							id: n,
 							timestamp: Date.now(),
-							position: res.pose.position,
-							linearVelocity: res.pose.linearVelocity,
-							linearAcceleration: res.pose.linearAcceleration,
-							orientation: res.pose.orientation,
-							angularVelocity: res.pose.angularVelocity,
-							angularAcceleration: res.pose.angularAcceleration
+							position: c.pose.position,
+							linearVelocity: c.pose.linearVelocity,
+							orientation: c.pose.orientation,
+							angularVelocity: c.pose.angularVelocity,
 						}
 					} );
 					window.dispatchEvent( e );

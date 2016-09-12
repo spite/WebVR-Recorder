@@ -124,14 +124,14 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 			function listenerContentScript( msg, sender ) {
 
-				log( 'Content Script', msg );
+				//log( 'Content Script', msg );
 
 				switch( msg.method ) {
 					case 'new-hmd-pose':
 					recording.poses.hmd.frames.push( msg.data );
 					break;
 					case 'new-controller-pose':
-					if( !recording.poses.controllers[ msg.data.id ] ) recording.poses.controllers[ msg.data.id ].frames = [];
+					if( !recording.poses.controllers[ msg.data.id ] ) recording.poses.controllers[ msg.data.id ] = { frames: [] };
 					recording.poses.controllers[ msg.data.id ].frames.push( msg.data );
 					break;
 				}
