@@ -52,7 +52,6 @@ port.onMessage.addListener( function( msg ) {
 				ge( 'recordings-select' ).appendChild( o );
 			})
 			post( { method: 'select-recording', value: 0 } )
-			ge( 'selected-playback' ).textContent = ge( 'recordings-select' ).options[ 0 ].textContent;
 		}
 		break;
 	}

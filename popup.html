@@ -1,16 +1,63 @@
+<!DOCTYPE html>
 <html>
+<head>
+	<style>
+	*{ box-sizing: border-box; font-size: 10px; line-height: 0; }
+	.button{ background-color: #eeeeee; border-radius: 20%; outline: none; border: 1px solid #ddd; height: 24px; width: 24px; position: relative; }
+	.button:hover{ background-color: #fafafa;}
+	.button object{ width: 12px; height: 12px; position: absolute; left: 50%, top: 50%; transform: translate3d( -50%, -50%, 0 );}
+	#scrubber{ height: 10px; border: 1px solid #ddd; }
+[tooltip]:before {
+    /* needed - do not touch */
+    content: attr(tooltip);
+    position: absolute;
+    opacity: 0;
+    z-index: 100;
+    white-space: nowrap;
+
+    /* customizable */
+    transition: all 0.15s ease .5s;
+    padding: 10px;
+    color: #333;
+    border-radius: 0;
+    box-shadow: 2px 2px 1px silver;
+}
+
+[tooltip]:hover:before {
+    /* needed - do not touch */
+    opacity: 1;
+
+    /* customizable */
+    background: #fffabe;
+    margin-top: -20px;
+    margin-left: 2px;
+}
+
+[tooltip]:not([tooltip-persistent]):before {
+    pointer-events: none;
+}
+
+	</style>
+</head>
 <body>
-	<p>Recorder</p>
-	<button id="start-recording-button" >Rec</button>
-	<button id="stop-recording-button" >Stop</button>
-	<p>Player</p>
+	<h1>Recorder</h1>
+	<div>
+	<button id="start-recording-button" class="button" tooltip="Start recording"><object type="image/svg+xml" data="assets/record.svg"></object></button>
+	<button id="stop-recording-button" class="button" tooltip="Stop recording"><object type="image/svg+xml" data="assets/stop.svg"></object></button>
+	<button id="upload-recording-button" class="button" tooltip="Upload a recording from a file"><object type="image/svg+xml" data="assets/upload.svg"></object></button>
+	</div>
+	<h1>Player</h1>
 	<select id="recordings-select"></select>
-	<p id="selected-playback" ></p>
-	<button id="delete-playback-button" >Delete</button>
-	<button id="start-playback-button" >Play</button>
-	<button id="stop-playback-button" >Stop</button>
-	<input type="checkbox" id="loop-toggle" /> <label for="loop-toggle" >Loop</label>
-	<div id="scrubber" ></div>
+	<button id="rename-playback-button" class="button" tooltip="Change selected recording name"><object type="image/svg+xml" data="assets/edit.svg"></object></button>
+	<button id="delete-playback-button" class="button" tooltip="Delete selected recording"><object type="image/svg+xml" data="assets/delete.svg"></object></button>
+	<button id="download-recording-button" class="button" tooltip="Download selected recording"><object type="image/svg+xml" data="assets/download.svg"></object></button>
+	<div>
+		<button id="start-playback-button" class="button" tooltip="Play selected recording back"><object type="image/svg+xml" data="assets/play.svg"></object></button>
+		<button id="pause-playback-button" class="button" tooltip="Pause currently playing recording"><object type="image/svg+xml" data="assets/pause.svg"></object></button>
+		<button id="stop-playback-button" class="button" tooltip="Stop currently playing recording"><object type="image/svg+xml" data="assets/stop.svg"></object></button>
+		<div id="scrubber" ></div>
+		<button id="loop-toggle" class="button" tooltip="Set video looping"><object type="image/svg+xml" data="assets/loop.svg"></object></button>
+	</div>
 </body>
 <script src="utils.js" ></script>
 <script src="popup.js" ></script>
