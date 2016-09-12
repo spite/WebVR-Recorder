@@ -110,8 +110,7 @@ var source = '(' + function () {
 
 			var ptr = playingOffset + ( performance.now() - startTime ) % playingLength;
 
-			var frames = playingSequence.frames.filter( f => ptr <= f.timestamp );
-			var frame = frames[ 0 ];
+			var frame = playingSequence.frames.find( f => ptr <= f.timestamp );
 
 			if( frame ) {
 
