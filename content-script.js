@@ -53,9 +53,15 @@ port.onMessage.addListener( function( msg ) {
 
 } );
 
-window.addEventListener( 'webvr-rec-new-pose', function( e ) {
+window.addEventListener( 'webvr-rec-new-hmd-pose', function( e ) {
 
-	post( { method: 'new-pose', data: e.detail } );
+	post( { method: 'new-hmd-pose', data: e.detail } );
+
+} );
+
+window.addEventListener( 'webvr-rec-new-controller-pose', function( e ) {
+
+	post( { method: 'new-controller-pose', data: e.detail } );
 
 } );
 
@@ -85,9 +91,9 @@ var source = '(' + function () {
 		playingSequence = e.detail;
 		playingOffset = 0;
 		playingLength = 0;
-		if( playingSequence.frames.length > 0 ) {
-			playingOffset = playingSequence.frames[ 0 ].timestamp;
-			playingLength = playingSequence.frames[ playingSequence.frames.length - 1 ].timestamp - playingOffset;
+		if( playingSequence.poses.hmd.frames.length > 0 ) {
+			playingOffset = playingSequence.poses.hmd.frames[ 0 ].timestamp;
+			playingLength = playingSequence.poses.hmd.frames[ playingSequence.poses.hmd.frames.length - 1 ].timestamp - playingOffset;
 		}
 	} );
 
@@ -110,7 +116,7 @@ var source = '(' + function () {
 
 			var ptr = playingOffset + ( performance.now() - startTime ) % playingLength;
 
-			var frame = playingSequence.frames.find( f => ptr <= f.timestamp );
+			var frame = playingSequence.poses.hmd.frames.find( f => ptr <= f.timestamp );
 
 			if( frame ) {
 
@@ -123,14 +129,14 @@ var source = '(' + function () {
 				res.orientation[ 2 ] = frame.orientation[ 2 ];
 				res.orientation[ 3 ] = frame.orientation[ 3 ];
 
-				console.log( ptr, frame.position[ 0 ] );
+				//console.log( ptr, frame.position[ 0 ] );
 			} else {
-				console.log( 'not modified' );
+				//console.log( 'not modified' );
 			}
 		}
 
 		if( recording ) {
-			var e = new CustomEvent( 'webvr-rec-new-pose', {
+			var e = new CustomEvent( 'webvr-rec-new-hmd-pose', {
 				detail: {
 					timestamp: res.timestamp,
 					position: res.position,
@@ -144,6 +150,44 @@ var source = '(' + function () {
 			window.dispatchEvent( e );
 		}
 		return res;
+	}
+
+	var getGamepads = navigator.getGamepads
+	navigator.getGamepads = function() {
+
+		var res = getGamepads();
+
+		if( playing ) {
+
+			res.forEach( ( c, n ) => {
+				if( res && res.pose ) {
+				}
+			}
+
+		}
+
+		if( recording ) {
+			res.forEach( ( c, n ) => {
+				if( res && res.pose ) {
+					var e = new CustomEvent( 'webvr-rec-new-controller-pose', {
+						detail: {
+							id: n,
+							timestamp: Date.now(),
+							position: res.pose.position,
+							linearVelocity: res.pose.linearVelocity,
+							linearAcceleration: res.pose.linearAcceleration,
+							orientation: res.pose.orientation,
+							angularVelocity: res.pose.angularVelocity,
+							angularAcceleration: res.pose.angularAcceleration
+						}
+					} );
+					window.dispatchEvent( e );
+				}
+			} );
+		}
+
+		return res;
+
 	}
 
 } + ')();';
