@@ -3,16 +3,21 @@
 <head>
 	<style>
 	*{ box-sizing: border-box; font-size: 10px; line-height: 0; }
-	.button{ background-color: #eeeeee; border-radius: 20%; outline: none; border: 1px solid #ddd; height: 24px; width: 24px; position: relative; }
+	body{ width: 300px; }
+	.button{ background-color: #eeeeee; border-radius: 4px; outline: none; border: 1px solid #ddd; height: 24px; width: 24px; position: relative; box-shadow: 0 2px 1px #ddd; margin: 1px;}
 	.button:hover{ background-color: #fafafa;}
-	.button object{ width: 12px; height: 12px; position: absolute; left: 50%, top: 50%; transform: translate3d( -50%, -50%, 0 );}
+	.button:active{ background-color: #ffffff; box-shadow: inset 0 2px 1px #ddd; }
+	.button:active object{ width: 10px; height: 10px; }
+	.button.disabled{ opacity: .5; }
+	.button object{ pointer-events: none; width: 12px; height: 12px; position: absolute; left: 50%, top: 50%; transform: translate3d( -50%, -50%, 0 );}
+	select{ width: 100%;}
 	#scrubber{ height: 10px; border: 1px solid #ddd; }
 [tooltip]:before {
     /* needed - do not touch */
     content: attr(tooltip);
     position: absolute;
     opacity: 0;
-    z-index: 100;
+    z-index: 1000;
     white-space: nowrap;
 
     /* customizable */
@@ -44,13 +49,13 @@
 	<div>
 	<button id="start-recording-button" class="button" tooltip="Start recording"><object type="image/svg+xml" data="assets/record.svg"></object></button>
 	<button id="stop-recording-button" class="button" tooltip="Stop recording"><object type="image/svg+xml" data="assets/stop.svg"></object></button>
-	<button id="upload-recording-button" class="button" tooltip="Upload a recording from a file"><object type="image/svg+xml" data="assets/upload.svg"></object></button>
+	<button id="upload-recording-button" class="disabled button" tooltip="Upload a recording from a file"><object type="image/svg+xml" data="assets/upload.svg"></object></button>
 	</div>
 	<h1>Player</h1>
 	<select id="recordings-select"></select>
-	<button id="rename-playback-button" class="button" tooltip="Change selected recording name"><object type="image/svg+xml" data="assets/edit.svg"></object></button>
+	<button id="rename-playback-button" class="disabled button" tooltip="Change selected recording name"><object type="image/svg+xml" data="assets/edit.svg"></object></button>
 	<button id="delete-playback-button" class="button" tooltip="Delete selected recording"><object type="image/svg+xml" data="assets/delete.svg"></object></button>
-	<button id="download-recording-button" class="button" tooltip="Download selected recording"><object type="image/svg+xml" data="assets/download.svg"></object></button>
+	<button id="download-recording-button" class="disabled button" tooltip="Download selected recording"><object type="image/svg+xml" data="assets/download.svg"></object></button>
 	<div>
 		<button id="start-playback-button" class="button" tooltip="Play selected recording back"><object type="image/svg+xml" data="assets/play.svg"></object></button>
 		<button id="pause-playback-button" class="button" tooltip="Pause currently playing recording"><object type="image/svg+xml" data="assets/pause.svg"></object></button>
