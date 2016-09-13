@@ -119,6 +119,13 @@ chrome.runtime.onConnect.addListener( function( port ) {
 							} );
 						} );
 					break;
+					case 'download-recording':
+						var recording = recordings[ msg.value ];
+						var json = JSON.stringify( recording );
+						var blob = new Blob([json], {type: "application/json"});
+						var url = window.URL.createObjectURL( blob );
+						chrome.downloads.download( { url: url, filename: `${recording.id}.json` } );
+					break;
 				}
 			}
 

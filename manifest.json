@@ -11,7 +11,8 @@
 	"permissions": [
 		"tabs",
 		"<all_urls>",
-		"storage"
+		"storage",
+		"downloads"
 	],
 	"content_scripts": [{
 		"matches": ["<all_urls>"],

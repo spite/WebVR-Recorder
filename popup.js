@@ -87,3 +87,9 @@ ge( 'delete-playback-button' ).addEventListener( 'click', e => {
 	post( { method: 'delete-recording', value: recordings[ selected ].id } );
 
 } );
+
+ge( 'download-recording-button' ).addEventListener( 'click', e => {
+
+	post( { method: 'download-recording', value: selected } );
+
+} );
