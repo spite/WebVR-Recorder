@@ -92,6 +92,8 @@ var source = '(' + function () {
 
 	Track.prototype.set = function( t ) {
 
+		t.frames = t.frames.filter( f => f.position !== null && f.orientation !== null );
+
 		this.playingPtr = 0;
 		this.playingOffset = 0;
 		this.playingLength = 0;
@@ -136,11 +138,11 @@ var source = '(' + function () {
 		playingSequence = e.detail;
 		controllerTracks = [];
 		hmdTrack.set( playingSequence.poses.hmd );
-		playingSequence.poses.controllers.forEach( p => {
+		/*playingSequence.poses.controllers.forEach( p => {
 			var t = new Track();
 			t.set( p );
 			controllerTracks.push( t );
-		} );
+		} );*/
 
 	} );
 
@@ -163,6 +165,8 @@ var source = '(' + function () {
 		pose.orientation[ 1 ] = frame.orientation[ 1 ];
 		pose.orientation[ 2 ] = frame.orientation[ 2 ];
 		pose.orientation[ 3 ] = frame.orientation[ 3 ];
+
+		return pose;
 
 	}
 
@@ -198,9 +202,9 @@ var source = '(' + function () {
 
 			if( frame ) {
 
-				copyFrameToPose( frame, res );
+				res = copyFrameToPose( frame, res );
 
-				//console.log( ptr, frame.position[ 0 ] );
+				//console.log( frame.orientation[ 0 ], res.orientation[ 0 ] );
 			} else {
 				//console.log( 'not modified' );
 			}
@@ -220,7 +224,9 @@ var source = '(' + function () {
 			} );
 			window.dispatchEvent( e );
 		}
+
 		return res;
+
 	}
 
 	var getGamepads = navigator.getGamepads;
@@ -228,7 +234,7 @@ var source = '(' + function () {
 
 		var res = getGamepads.apply( navigator );
 
-		if( playing ) {
+		/*if( playing ) {
 
 			var id = 0;
 			[].forEach.call( res, ( c, n ) => {
@@ -247,7 +253,7 @@ var source = '(' + function () {
 
 			}
 
-		}
+		}*/
 
 		if( recording ) {
 			[].forEach.call( res, ( c, n ) => {
