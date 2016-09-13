@@ -93,3 +93,9 @@ ge( 'download-recording-button' ).addEventListener( 'click', e => {
 	post( { method: 'download-recording', value: selected } );
 
 } );
+
+ge( 'upload-recording-button' ).addEventListener( 'click', e => {
+
+	post( { method: 'upload-recording' } );
+
+} );

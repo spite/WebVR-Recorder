@@ -126,6 +126,9 @@ chrome.runtime.onConnect.addListener( function( port ) {
 						var url = window.URL.createObjectURL( blob );
 						chrome.downloads.download( { url: url, filename: `${recording.id}.json` } );
 					break;
+					case 'upload-recording':
+						connections[ tabId ].contentScript.postMessage( { method: 'upload-recording' } );
+					break;
 				}
 			}
 
@@ -140,6 +143,17 @@ chrome.runtime.onConnect.addListener( function( port ) {
 					case 'new-controller-pose':
 					if( !recording.poses.controllers[ msg.data.id ] ) recording.poses.controllers[ msg.data.id ] = { frames: [] };
 					recording.poses.controllers[ msg.data.id ].frames.push( msg.data );
+					break;
+					case 'new-upload':
+					var upload = JSON.parse( msg.data );
+					saveRecording( upload ).then( _ => {
+						log( 'Recording successfully saved' );
+						loadRecordings().then( _ => {
+							Object.keys( connections ).forEach( tabId => {
+								if( connections[ tabId ].popup ) connections[ tabId ].popup.postMessage( { method: 'recordings', recordings: recordings } );
+							} );
+						} );
+					});
 					break;
 				}
 

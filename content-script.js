@@ -49,6 +49,9 @@ port.onMessage.addListener( function( msg ) {
 		var e = new Event( 'webvr-rec-stop-playback' );
 		window.dispatchEvent( e );
 		break;
+		case 'upload-recording':
+		fileChooser.click();
+		break;
 	}
 
 } );
@@ -274,3 +277,26 @@ var script = document.createElement('script');
 script.textContent = source;
 (document.head||document.documentElement).appendChild(script);
 script.parentNode.removeChild(script);
+
+var fileChooser = document.createElement('input');
+fileChooser.type = 'file';
+fileChooser.addEventListener('change', function () {
+
+	var file = fileChooser.files[0];
+	var formData = new FormData();
+	formData.append(file.name, file);
+
+	var reader = new FileReader();
+	reader.onload = function(){
+		var data = reader.result;
+		post( { method: 'new-upload', data: data } );
+	};
+	reader.readAsText(file);
+	form.reset(); 
+
+});
+
+/* Wrap it in a form for resetting */
+var form = document.createElement('form');
+form.appendChild(fileChooser);
+
