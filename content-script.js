@@ -68,6 +68,12 @@ window.addEventListener( 'webvr-rec-new-controller-pose', function( e ) {
 
 } );
 
+window.addEventListener( 'webvr-rec-set-transforms', function( e ) {
+
+	post( { method: 'set-transform', data: e.detail } );
+
+} );
+
 var source = '(' + function () {
 
 	'use strict';
@@ -139,7 +145,7 @@ var source = '(' + function () {
 		
 		playingSequence = e.detail;
 		controllerTracks = [];
-		hmdTrack.set( playingSequence.poses.hmd );
+		hmdTrack.set( playingSequence.data.hmd );
 		/*playingSequence.poses.controllers.forEach( p => {
 			var t = new Track();
 			t.set( p );
@@ -209,26 +215,14 @@ var source = '(' + function () {
 			} else {
 				//console.log( 'not modified' );
 			}
+
+			this.stageParameters.sittingToStandingTransform = playingSequence.transforms.sittingToStandingTransform;
+			
 		}
 
 		if( recording ) {
 
-			if( matrixIsSet ) {
-
-				var e = new CustomEvent( 'webvr-rec-new-hmd-pose', {
-					detail: {
-						timestamp: res.timestamp,
-						position: res.position,
-						linearVelocity: res.linearVelocity,
-						linearAcceleration: res.linearAcceleration,
-						orientation: res.orientation,
-						angularVelocity: res.angularVelocity,
-						angularAcceleration: res.angularAcceleration
-					}
-				} );
-				window.dispatchEvent( e );
-
-			} else {
+			if( !matrixIsSet ) {
 
 				var e = new CustomEvent( 'webvr-rec-set-transforms', {
 					detail: {
@@ -236,8 +230,22 @@ var source = '(' + function () {
 					}
 				} );
 				window.dispatchEvent( e );
+				matrixIsSet = true;
 
 			}
+
+			var e = new CustomEvent( 'webvr-rec-new-hmd-pose', {
+				detail: {
+					timestamp: res.timestamp,
+					position: res.position,
+					linearVelocity: res.linearVelocity,
+					linearAcceleration: res.linearAcceleration,
+					orientation: res.orientation,
+					angularVelocity: res.angularVelocity,
+					angularAcceleration: res.angularAcceleration
+				}
+			} );
+			window.dispatchEvent( e );
 
 		}
 

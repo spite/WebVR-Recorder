@@ -32,7 +32,7 @@ var playingRecording = null;
 
 var db = new Dexie( 'webvr-recordings' );
 db.version(1).stores({
-	recordings: 'id,poses'
+	recordings: 'id,data'
 });
 db.open().catch(function (e) {
 	log ( `Open failed: ${e}` );
@@ -50,7 +50,7 @@ function loadRecordings() {
 
 function saveRecording( recording ) {
 
-	return db.recordings.put( { id: recording.id, poses: recording.poses } );
+	return db.recordings.put( { id: recording.id, data: recording.data } );
 
 }
 
@@ -85,7 +85,14 @@ chrome.runtime.onConnect.addListener( function( port ) {
 
 				switch( msg.method ) {
 					case 'start-recording':
-						recording = { id: Date.now(), poses: { hmd: { frames: [] }, controllers: [] } };
+						recording = { 
+							id: Date.now(), 
+							data: { 
+								transforms: {}, 
+								hmd: { frames: [] }, 
+								controllers: [] 
+							} 
+						};
 						connections[ tabId ].contentScript.postMessage( { method: 'start-recording' } );
 					break;
 					case 'stop-recording':
@@ -137,12 +144,15 @@ chrome.runtime.onConnect.addListener( function( port ) {
 				//log( 'Content Script', msg );
 
 				switch( msg.method ) {
+					case 'set-transform':
+					recording.data.transforms.sittingToStandingTransform = msg.data.sittingToStandingTransform;
+					break;
 					case 'new-hmd-pose':
-					recording.poses.hmd.frames.push( msg.data );
+					recording.data.hmd.frames.push( msg.data );
 					break;
 					case 'new-controller-pose':
-					if( !recording.poses.controllers[ msg.data.id ] ) recording.poses.controllers[ msg.data.id ] = { frames: [] };
-					recording.poses.controllers[ msg.data.id ].frames.push( msg.data );
+					//if( !recording.poses.controllers[ msg.data.id ] ) recording.poses.controllers[ msg.data.id ] = { frames: [] };
+					//recording.poses.controllers[ msg.data.id ].frames.push( msg.data );
 					break;
 					case 'new-upload':
 					var upload = JSON.parse( msg.data );
