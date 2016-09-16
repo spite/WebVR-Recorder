@@ -76,6 +76,7 @@ var source = '(' + function () {
 
 	var recording = false;
 	var playing = false;
+	var matrixIsSet = false;
 
 	var playingSequence = null;
 
@@ -127,6 +128,7 @@ var source = '(' + function () {
 
 	window.addEventListener( 'webvr-rec-start-recording', e => {
 		recording = true;
+		matrixIsSet = false;
 	} );
 
 	window.addEventListener( 'webvr-rec-stop-recording', e => {
@@ -190,7 +192,6 @@ var source = '(' + function () {
 
 	}
 
-
 	var getPose = VRDisplay.prototype.getPose;
 	VRDisplay.prototype.getPose = function() {
 
@@ -211,18 +212,33 @@ var source = '(' + function () {
 		}
 
 		if( recording ) {
-			var e = new CustomEvent( 'webvr-rec-new-hmd-pose', {
-				detail: {
-					timestamp: res.timestamp,
-					position: res.position,
-					linearVelocity: res.linearVelocity,
-					linearAcceleration: res.linearAcceleration,
-					orientation: res.orientation,
-					angularVelocity: res.angularVelocity,
-					angularAcceleration: res.angularAcceleration
-				}
-			} );
-			window.dispatchEvent( e );
+
+			if( matrixIsSet ) {
+
+				var e = new CustomEvent( 'webvr-rec-new-hmd-pose', {
+					detail: {
+						timestamp: res.timestamp,
+						position: res.position,
+						linearVelocity: res.linearVelocity,
+						linearAcceleration: res.linearAcceleration,
+						orientation: res.orientation,
+						angularVelocity: res.angularVelocity,
+						angularAcceleration: res.angularAcceleration
+					}
+				} );
+				window.dispatchEvent( e );
+
+			} else {
+
+				var e = new CustomEvent( 'webvr-rec-set-transforms', {
+					detail: {
+						sittingToStandingTransform: this.stageParameters.sittingToStandingTransform
+					}
+				} );
+				window.dispatchEvent( e );
+
+			}
+
 		}
 
 		return res;
