@@ -115,7 +115,7 @@ var source = '(' + function () {
 	}
 
 	Track.prototype.start = function() {
-		
+
 		this.playingPtr = 0;
 		this.startTime = performance.now();
 
@@ -142,7 +142,7 @@ var source = '(' + function () {
 	} );
 
 	window.addEventListener( 'webvr-rec-select-playback', e => {
-		
+
 		playingSequence = e.detail;
 		controllerTracks = [];
 		hmdTrack.set( playingSequence.data.hmd );
@@ -216,8 +216,8 @@ var source = '(' + function () {
 				//console.log( 'not modified' );
 			}
 
-			this.stageParameters.sittingToStandingTransform = playingSequence.transforms.sittingToStandingTransform;
-			
+			this.stageParameters.sittingToStandingTransform = playingSequence.data.transforms.sittingToStandingTransform;
+
 		}
 
 		if( recording ) {
@@ -322,7 +322,7 @@ fileChooser.addEventListener('change', function () {
 		post( { method: 'new-upload', data: data } );
 	};
 	reader.readAsText(file);
-	form.reset(); 
+	form.reset();
 
 });
 
